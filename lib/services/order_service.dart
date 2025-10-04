@@ -3,54 +3,69 @@ import '../models/order.dart';
 import '../models/cart_item.dart';
 
 class OrderService {
-  final _supabase = Supabase.instance.client;
+  final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Create new order
   Future<Order> createOrder({
     required List<CartItem> cartItems,
-    required String shippingAddress,
+    required String recipientName,
+    required String phone,
+    required String address,
+    required String city,
+    String? notes,
+    String? paymentMethod,
   }) async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) throw Exception('User not logged in');
+
+    final total = cartItems.fold<double>(0, (sum, item) => sum + item.subtotal);
+
+    final shippingAddress = '''
+$recipientName
+$phone
+$address
+$city
+${notes != null && notes.isNotEmpty ? 'Catatan: $notes' : ''}
+Metode Pembayaran: ${_getPaymentMethodLabel(paymentMethod ?? 'cod')}
+''';
+
     try {
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) throw Exception('User not authenticated');
-
-      // Calculate total
-      final total = cartItems.fold<double>(
-        0,
-        (sum, item) => sum + item.subtotal,
-      );
-
-      // Create order
-      final orderData = {
-        'user_id': userId,
-        'total': total,
-        'status': 'pending',
-        'shipping_address': shippingAddress,
-      };
-
-      final orderResponse =
-          await _supabase.from('orders').insert(orderData).select().single();
+      // Insert order tanpa field 'quantity'
+      final orderResponse = await _supabase
+          .from('orders')
+          .insert({
+            'user_id': userId,
+            'total': total,
+            'status': 'pending',
+            'shipping_address': shippingAddress,
+            'payment_method': paymentMethod,
+          })
+          .select()
+          .single();
 
       final orderId = orderResponse['id'];
 
-      // Create order items
-      final orderItems = cartItems.map((item) {
-        return {
+      // Insert order items dengan quantity masing-masing produk
+      for (var item in cartItems) {
+        await _supabase.from('order_items').insert({
           'order_id': orderId,
           'product_id': item.product.id,
           'quantity': item.quantity,
           'price': item.product.price,
-        };
-      }).toList();
+        });
 
-      await _supabase.from('order_items').insert(orderItems);
+        // Kurangi stok produk
+        final currentProduct = await _supabase
+            .from('products')
+            .select('stock')
+            .eq('id', item.product.id)
+            .single();
 
-      // Update product stock
-      for (var item in cartItems) {
+        final newStock = (currentProduct['stock'] as int) - item.quantity;
+        
         await _supabase
             .from('products')
-            .update({'stock': item.product.stock - item.quantity}).eq(
-                'id', item.product.id);
+            .update({'stock': newStock})
+            .eq('id', item.product.id);
       }
 
       return Order.fromJson(orderResponse);
@@ -59,129 +74,113 @@ class OrderService {
     }
   }
 
-  // Get user orders
-  Future<List<Order>> getUserOrders() async {
-    try {
-      final userId = _supabase.auth.currentUser?.id;
-      if (userId == null) throw Exception('User not authenticated');
+  String _getPaymentMethodLabel(String method) {
+    switch (method) {
+      case 'cod':
+        return 'Cash on Delivery';
+      case 'transfer':
+        return 'Transfer Bank';
+      case 'online':
+        return 'Pembayaran Online';
+      default:
+        return method;
+    }
+  }
 
+  Future<List<Order>> getUserOrders() async {
+    final userId = _supabase.auth.currentUser?.id;
+    if (userId == null) return [];
+
+    try {
       final response = await _supabase
           .from('orders')
-          .select('*')
+          .select('*, order_items(*, products(*))')
           .eq('user_id', userId)
           .order('created_at', ascending: false);
 
       return (response as List).map((json) => Order.fromJson(json)).toList();
     } catch (e) {
-      throw Exception('Failed to fetch orders: $e');
+      throw Exception('Failed to load orders: $e');
     }
   }
 
-  // Get order detail with items
-  Future<Order> getOrderDetail(String orderId) async {
+  Future<Order?> getOrderById(String orderId) async {
     try {
-      // Get order
-      final orderResponse =
-          await _supabase.from('orders').select('*').eq('id', orderId).single();
+      final response = await _supabase
+          .from('orders')
+          .select('*, order_items(*, products(*))')
+          .eq('id', orderId)
+          .single();
 
-      // Get order items with product details
-      final itemsResponse = await _supabase.from('order_items').select('''
-            *,
-            products (
-              name,
-              image_url
-            )
-          ''').eq('order_id', orderId);
-
-      // Map items with product details
-      final items = (itemsResponse as List).map((json) {
-        return OrderItem.fromJson({
-          ...json,
-          'product_name': json['products']['name'],
-          'product_image': json['products']['image_url'],
-        });
-      }).toList();
-
-      return Order.fromJson({
-        ...orderResponse,
-        'items': items.map((item) => item.toJson()).toList(),
-      });
+      return Order.fromJson(response);
     } catch (e) {
-      throw Exception('Failed to fetch order detail: $e');
+      return null;
     }
   }
 
-  // Cancel order (update status jadi cancelled)
   Future<void> cancelOrder(String orderId) async {
     try {
-      // Get order items to restore stock
-      final items = await _supabase
-          .from('order_items')
-          .select('product_id, quantity')
-          .eq('order_id', orderId);
-
-      // Restore stock
-      for (var item in items) {
-        final product = await _supabase
-            .from('products')
-            .select('stock')
-            .eq('id', item['product_id'])
-            .single();
-
-        await _supabase
-            .from('products')
-            .update({'stock': product['stock'] + item['quantity']}).eq(
-                'id', item['product_id']);
-      }
-
-      // Update order status
       await _supabase
           .from('orders')
-          .update({'status': 'cancelled'}).eq('id', orderId);
+          .update({'status': 'cancelled'})
+          .eq('id', orderId);
     } catch (e) {
       throw Exception('Failed to cancel order: $e');
     }
   }
 
-  // Delete order permanently (hapus dari database)
   Future<void> deleteOrder(String orderId) async {
     try {
-      // 1. Get order items
-      final items = await _supabase
-          .from('order_items')
-          .select('product_id, quantity')
-          .eq('order_id', orderId);
+      final user = _supabase.auth.currentUser;
+      if (user == null) throw Exception('User not authenticated');
 
-      // 2. Restore stock
-      for (var item in items) {
-        final product = await _supabase
+      // Ambil detail pesanan dan item-itemnya untuk restore stok
+      final orderResponse = await _supabase
+          .from('orders')
+          .select('*, order_items(*)')
+          .eq('id', orderId)
+          .eq('user_id', user.id)
+          .single();
+
+      // Restore stok untuk setiap item
+      final orderItems = orderResponse['order_items'] as List<dynamic>;
+      
+      for (var item in orderItems) {
+        final productId = item['product_id'];
+        final quantity = item['quantity'] as int;
+
+        // Ambil stok produk saat ini
+        final productResponse = await _supabase
             .from('products')
             .select('stock')
-            .eq('id', item['product_id'])
+            .eq('id', productId)
             .single();
 
+        final currentStock = productResponse['stock'] as int;
+        final newStock = currentStock + quantity;
+
+        // Update stok produk
         await _supabase
             .from('products')
-            .update({'stock': product['stock'] + item['quantity']}).eq(
-                'id', item['product_id']);
+            .update({'stock': newStock})
+            .eq('id', productId);
       }
 
-      // 3. Delete order items
-      await _supabase.from('order_items').delete().eq('order_id', orderId);
+      // Hapus order items terlebih dahulu
+      await _supabase
+          .from('order_items')
+          .delete()
+          .eq('order_id', orderId);
 
-      // 4. Delete order (pakai 'id' bukan 'order_id')
-      final result = await _supabase
+      // Kemudian hapus order
+      await _supabase
           .from('orders')
           .delete()
-          .eq('id', orderId) // ✅ Ganti ke 'id'
-          .select();
+          .eq('id', orderId)
+          .eq('user_id', user.id);
 
-      if (result.isEmpty) {
-        throw Exception('Gagal menghapus pesanan');
-      }
     } catch (e) {
-      print('Error: $e');
-      rethrow;
+      throw Exception('Failed to delete order: $e');
     }
   }
 }

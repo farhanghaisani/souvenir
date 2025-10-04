@@ -8,408 +8,615 @@ class CartScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Keranjang Belanja'),
-        backgroundColor: Colors.blue,
-        foregroundColor: Colors.white,
-        actions: [
-          Consumer<CartProvider>(
-            builder: (context, cart, child) {
-              if (cart.itemCount > 0) {
-                return IconButton(
-                  icon: const Icon(Icons.delete_sweep),
-                  tooltip: 'Hapus Semua',
-                  onPressed: () {
-                    _showClearCartDialog(context, cart);
-                  },
-                );
-              }
-              return const SizedBox.shrink();
-            },
-          ),
-        ],
-      ),
+      backgroundColor: const Color(0xFFF8F9FA),
       body: Consumer<CartProvider>(
         builder: (context, cart, child) {
-          if (cart.itemCount == 0) {
-            return Center(
+          return CustomScrollView(
+            slivers: [
+              // Custom App Bar
+              SliverAppBar(
+                expandedHeight: 120,
+                floating: false,
+                pinned: true,
+                backgroundColor: const Color(0xFFFF6B6B),
+                elevation: 0,
+                leading: Container(
+                  margin: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: IconButton(
+                    icon: const Icon(Icons.arrow_back, color: Colors.white),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+                actions: [
+                  if (cart.itemCount > 0)
+                    Container(
+                      margin: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.2),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.delete_outline, color: Colors.white),
+                        onPressed: () => _showClearCartDialog(context, cart),
+                      ),
+                    ),
+                ],
+                flexibleSpace: FlexibleSpaceBar(
+                  title: const Text(
+                    'Keranjang Belanja',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                  background: Container(
+                    decoration: const BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFFFF6B6B),
+                          Color(0xFFFF8E53),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              if (cart.itemCount == 0)
+                SliverFillRemaining(
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(40),
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [
+                                Colors.grey[100]!,
+                                Colors.grey[50]!,
+                              ],
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: Icon(
+                            Icons.shopping_cart_outlined,
+                            size: 100,
+                            color: Colors.grey[300],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                        const Text(
+                          'Keranjang Masih Kosong',
+                          style: TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 40),
+                          child: Text(
+                            'Temukan produk souvenir favorit Anda dan mulai belanja!',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.grey[600],
+                              height: 1.5,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 40),
+                        Container(
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+                            ),
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: [
+                              BoxShadow(
+                                color: const Color(0xFFFF6B6B).withValues(alpha: 0.4),
+                                blurRadius: 20,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(context),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              shadowColor: Colors.transparent,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 48,
+                                vertical: 16,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16),
+                              ),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.shopping_bag_outlined, size: 24),
+                                SizedBox(width: 12),
+                                Text(
+                                  'Mulai Belanja',
+                                  style: TextStyle(
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                )
+              else ...[
+                // Item Count Badge
+                SliverToBoxAdapter(
+                  child: Container(
+                    margin: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          const Color(0xFFFF6B6B).withValues(alpha: 0.1),
+                          const Color(0xFFFF8E53).withValues(alpha: 0.05),
+                        ],
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFFFF6B6B).withValues(alpha: 0.2),
+                        width: 1,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: const BoxDecoration(
+                            gradient: LinearGradient(
+                              colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+                            ),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.shopping_bag,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              '${cart.items.values.fold(0, (sum, item) => sum + item.quantity)} Item di Keranjang',
+                              style: const TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text(
+                              'Geser ke kiri untuk menghapus',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Cart Items
+                SliverPadding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  sliver: SliverList(
+                    delegate: SliverChildBuilderDelegate(
+                      (context, index) {
+                        final cartItem = cart.items.values.toList()[index];
+                        final product = cartItem.product;
+                        
+                        return Dismissible(
+                          key: Key(product.id),
+                          direction: DismissDirection.endToStart,
+                          background: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.only(right: 24),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Colors.red, Colors.redAccent],
+                              ),
+                              borderRadius: BorderRadius.circular(24),
+                            ),
+                            child: const Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(Icons.delete_outline, color: Colors.white, size: 32),
+                                SizedBox(height: 4),
+                                Text(
+                                  'Hapus',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          onDismissed: (direction) {
+                            cart.removeItem(product.id);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Row(
+                                  children: [
+                                    const Icon(Icons.check_circle, color: Colors.white),
+                                    const SizedBox(width: 12),
+                                    Expanded(child: Text('${product.name} dihapus')),
+                                  ],
+                                ),
+                                backgroundColor: Colors.green,
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                margin: const EdgeInsets.all(16),
+                              ),
+                            );
+                          },
+                          child: Container(
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(24),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.04),
+                                  blurRadius: 15,
+                                  offset: const Offset(0, 4),
+                                ),
+                              ],
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                children: [
+                                  // Product Image with Hero
+                                  Hero(
+                                    tag: 'cart-${product.id}',
+                                    child: Container(
+                                      width: 100,
+                                      height: 100,
+                                      decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(20),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: Colors.black.withValues(alpha: 0.08),
+                                            blurRadius: 10,
+                                            offset: const Offset(0, 4),
+                                          ),
+                                        ],
+                                      ),
+                                      child: ClipRRect(
+                                        borderRadius: BorderRadius.circular(20),
+                                        child: product.imageUrl != null && product.imageUrl!.isNotEmpty
+                                            ? Image.network(
+                                                product.imageUrl!,
+                                                fit: BoxFit.cover,
+                                                errorBuilder: (context, error, stackTrace) {
+                                                  return _buildImagePlaceholder();
+                                                },
+                                              )
+                                            : _buildImagePlaceholder(),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  
+                                  // Product Info
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          product.name,
+                                          style: const TextStyle(
+                                            fontWeight: FontWeight.bold,
+                                            fontSize: 16,
+                                            height: 1.3,
+                                          ),
+                                          maxLines: 2,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                        const SizedBox(height: 6),
+                                        Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 4,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            gradient: LinearGradient(
+                                              colors: [
+                                                Colors.grey[100]!,
+                                                Colors.grey[50]!,
+                                              ],
+                                            ),
+                                            borderRadius: BorderRadius.circular(8),
+                                          ),
+                                          child: Text(
+                                            product.category,
+                                            style: TextStyle(
+                                              color: Colors.grey[700],
+                                              fontSize: 11,
+                                              fontWeight: FontWeight.w600,
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(height: 12),
+                                        
+                                        // Quantity Controls
+                                        Row(
+                                          children: [
+                                            Container(
+                                              decoration: BoxDecoration(
+                                                gradient: LinearGradient(
+                                                  colors: [
+                                                    Colors.grey[100]!,
+                                                    Colors.grey[50]!,
+                                                  ],
+                                                ),
+                                                borderRadius: BorderRadius.circular(14),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Material(
+                                                    color: Colors.transparent,
+                                                    child: InkWell(
+                                                      onTap: () {
+                                                        if (cartItem.quantity > 1) {
+                                                          cart.decrementQuantity(product.id);
+                                                        } else {
+                                                          cart.removeItem(product.id);
+                                                        }
+                                                      },
+                                                      borderRadius: BorderRadius.circular(14),
+                                                      child: Container(
+                                                        padding: const EdgeInsets.all(10),
+                                                        child: Icon(
+                                                          cartItem.quantity > 1
+                                                              ? Icons.remove
+                                                              : Icons.delete_outline,
+                                                          size: 18,
+                                                          color: cartItem.quantity > 1
+                                                              ? Colors.black87
+                                                              : Colors.red,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Container(
+                                                    constraints: const BoxConstraints(minWidth: 40),
+                                                    child: Text(
+                                                      '${cartItem.quantity}',
+                                                      textAlign: TextAlign.center,
+                                                      style: const TextStyle(
+                                                        fontSize: 16,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                  Material(
+                                                    color: Colors.transparent,
+                                                    child: InkWell(
+                                                      onTap: cartItem.quantity < product.stock
+                                                          ? () => cart.incrementQuantity(product.id)
+                                                          : null,
+                                                      borderRadius: BorderRadius.circular(14),
+                                                      child: Container(
+                                                        padding: const EdgeInsets.all(10),
+                                                        child: Icon(
+                                                          Icons.add,
+                                                          size: 18,
+                                                          color: cartItem.quantity < product.stock
+                                                              ? Colors.black87
+                                                              : Colors.grey[400],
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 12),
+                                        
+                                        // Price
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            if (cartItem.quantity >= product.stock)
+                                              Row(
+                                                children: [
+                                                  Icon(
+                                                    Icons.info_outline,
+                                                    size: 14,
+                                                    color: Colors.orange[700],
+                                                  ),
+                                                  const SizedBox(width: 4),
+                                                  Text(
+                                                    'Maks',
+                                                    style: TextStyle(
+                                                      fontSize: 12,
+                                                      color: Colors.orange[700],
+                                                      fontWeight: FontWeight.w600,
+                                                    ),
+                                                  ),
+                                                ],
+                                              )
+                                            else
+                                              const SizedBox(),
+                                            Text(
+                                              'Rp ${cartItem.subtotal.toStringAsFixed(0).replaceAllMapped(
+                                                RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                                                (Match m) => '${m[1]}.',
+                                              )}',
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.bold,
+                                                color: Color(0xFFFF6B6B),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
+                      childCount: cart.items.length,
+                    ),
+                  ),
+                ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 120)),
+              ],
+            ],
+          );
+        },
+      ),
+      bottomNavigationBar: Consumer<CartProvider>(
+        builder: (context, cart, child) {
+          if (cart.itemCount == 0) return const SizedBox.shrink();
+          
+          return Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 30,
+                  offset: const Offset(0, -10),
+                ),
+              ],
+            ),
+            child: SafeArea(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    Icons.shopping_cart_outlined,
-                    size: 100,
-                    color: Colors.grey[400],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Keranjang Anda Kosong',
-                    style: TextStyle(
-                      fontSize: 18,
-                      color: Colors.grey[600],
-                      fontWeight: FontWeight.w500,
+                  // Drag Handle
+                  Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Yuk, mulai belanja sekarang!',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey[500],
-                    ),
+                  const SizedBox(height: 20),
+                  
+                  // Summary
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Total (${cart.items.values.fold(0, (sum, item) => sum + item.quantity)} item)',
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Rp ${cart.items.values.fold(0.0, (sum, item) => sum + item.subtotal).toStringAsFixed(0).replaceAllMapped(
+                              RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'),
+                              (Match m) => '${m[1]}.',
+                            )}',
+                            style: const TextStyle(
+                              fontSize: 28,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFFFF6B6B),
+                              letterSpacing: -1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 24),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                    },
-                    icon: const Icon(Icons.shopping_bag),
-                    label: const Text('Belanja Sekarang'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.blue,
-                      foregroundColor: Colors.white,
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 24,
-                        vertical: 12,
+                  const SizedBox(height: 20),
+                  
+                  // Checkout Button
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF6B6B), Color(0xFFFF8E53)],
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: const Color(0xFFFF6B6B).withValues(alpha: 0.4),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pushNamed(context, '/checkout'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        foregroundColor: Colors.white,
+                        shadowColor: Colors.transparent,
+                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        minimumSize: const Size(double.infinity, 0),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                      ),
+                      child: const Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.shopping_bag_outlined, size: 24),
+                          SizedBox(width: 12),
+                          Text(
+                            'Checkout Sekarang',
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   ),
                 ],
               ),
-            );
-          }
-
-          return Column(
-            children: [
-              // Cart Items List
-              Expanded(
-                child: ListView.builder(
-                  itemCount: cart.items.length,
-                  padding: const EdgeInsets.all(16),
-                  itemBuilder: (context, index) {
-                    final cartItem = cart.items.values.toList()[index];
-                    final product = cartItem.product;
-                    
-                    return Dismissible(
-                      key: Key(product.id),
-                      direction: DismissDirection.endToStart,
-                      background: Container(
-                        alignment: Alignment.centerRight,
-                        padding: const EdgeInsets.only(right: 20),
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.red,
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: const Icon(
-                          Icons.delete,
-                          color: Colors.white,
-                          size: 32,
-                        ),
-                      ),
-                      onDismissed: (direction) {
-                        cart.removeItem(product.id);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('${product.name} dihapus dari keranjang'),
-                            duration: const Duration(seconds: 2),
-                            backgroundColor: Colors.red,
-                          ),
-                        );
-                      },
-                      child: Card(
-                        elevation: 2,
-                        margin: const EdgeInsets.only(bottom: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Row(
-                            children: [
-                              // Product Image
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(8),
-                                child: product.imageUrl != null && product.imageUrl!.isNotEmpty
-                                    ? Image.network(
-                                        product.imageUrl!,
-                                        width: 80,
-                                        height: 80,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (context, error, stackTrace) {
-                                          return _buildImagePlaceholder();
-                                        },
-                                      )
-                                    : _buildImagePlaceholder(),
-                              ),
-                              const SizedBox(width: 12),
-                              
-                              // Product Info
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      product.name,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                      maxLines: 2,
-                                      overflow: TextOverflow.ellipsis,
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      product.category,
-                                      style: TextStyle(
-                                        color: Colors.grey[600],
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Rp ${product.price.toStringAsFixed(0)}',
-                                      style: const TextStyle(
-                                        color: Colors.blue,
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.w600,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 8),
-                                    
-                                    Row(
-                                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        // Quantity Controls
-                                        Container(
-                                          decoration: BoxDecoration(
-                                            border: Border.all(color: Colors.grey[300]!),
-                                            borderRadius: BorderRadius.circular(8),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              InkWell(
-                                                onTap: () {
-                                                  if (cartItem.quantity > 1) {
-                                                    cart.decrementQuantity(product.id);
-                                                  } else {
-                                                    cart.removeItem(product.id);
-                                                  }
-                                                },
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(4),
-                                                  child: Icon(
-                                                    cartItem.quantity > 1
-                                                        ? Icons.remove
-                                                        : Icons.delete_outline,
-                                                    size: 20,
-                                                    color: cartItem.quantity > 1
-                                                        ? Colors.blue
-                                                        : Colors.red,
-                                                  ),
-                                                ),
-                                              ),
-                                              Container(
-                                                padding: const EdgeInsets.symmetric(
-                                                  horizontal: 12,
-                                                  vertical: 4,
-                                                ),
-                                                child: Text(
-                                                  '${cartItem.quantity}',
-                                                  style: const TextStyle(
-                                                    fontSize: 16,
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                                ),
-                                              ),
-                                              InkWell(
-                                                onTap: cartItem.quantity < product.stock
-                                                    ? () {
-                                                        cart.incrementQuantity(product.id);
-                                                      }
-                                                    : null,
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(4),
-                                                  child: Icon(
-                                                    Icons.add,
-                                                    size: 20,
-                                                    color: cartItem.quantity < product.stock
-                                                        ? Colors.blue
-                                                        : Colors.grey,
-                                                  ),
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        
-                                        // Subtotal
-                                        Text(
-                                          'Rp ${cartItem.subtotal.toStringAsFixed(0)}',
-                                          style: const TextStyle(
-                                            fontSize: 16,
-                                            fontWeight: FontWeight.bold,
-                                            color: Colors.blue,
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    
-                                    // Stock warning
-                                    if (cartItem.quantity >= product.stock)
-                                      Padding(
-                                        padding: const EdgeInsets.only(top: 4),
-                                        child: Text(
-                                          'Stok maksimal: ${product.stock}',
-                                          style: TextStyle(
-                                            fontSize: 11,
-                                            color: Colors.orange[700],
-                                            fontStyle: FontStyle.italic,
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-              ),
-              
-              // Bottom Summary & Checkout
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.grey.withOpacity(0.3),
-                      spreadRadius: 1,
-                      blurRadius: 5,
-                      offset: const Offset(0, -3),
-                    ),
-                  ],
-                ),
-                child: SafeArea(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      // Detailed Summary
-                      Container(
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Total Item',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                                Text(
-                                  '${cart.items.values.fold(0, (sum, item) => sum + item.quantity)} pcs',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  'Subtotal',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    color: Colors.grey[700],
-                                  ),
-                                ),
-                                Text(
-                                  'Rp ${cart.items.values.fold(0.0, (sum, item) => sum + item.subtotal).toStringAsFixed(0)}',
-                                  style: const TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const Divider(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                const Text(
-                                  'Total Pembayaran',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Text(
-                                  'Rp ${cart.items.values.fold(0.0, (sum, item) => sum + item.subtotal).toStringAsFixed(0)}',
-                                  style: const TextStyle(
-                                    fontSize: 20,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 16),
-                      
-                      // Checkout Button
-                      SizedBox(
-                        width: double.infinity,
-                        child: ElevatedButton(
-                          onPressed: () {
-                            Navigator.pushNamed(context, '/checkout');
-                          },
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            padding: const EdgeInsets.symmetric(vertical: 16),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            elevation: 3,
-                          ),
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(Icons.shopping_cart_checkout, size: 24),
-                              SizedBox(width: 8),
-                              Text(
-                                'Lanjut ke Pembayaran',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
+            ),
           );
         },
       ),
@@ -418,16 +625,16 @@ class CartScreen extends StatelessWidget {
 
   Widget _buildImagePlaceholder() {
     return Container(
-      width: 80,
-      height: 80,
       decoration: BoxDecoration(
-        color: Colors.grey[300],
-        borderRadius: BorderRadius.circular(8),
+        gradient: LinearGradient(
+          colors: [Colors.grey[200]!, Colors.grey[100]!],
+        ),
+        borderRadius: BorderRadius.circular(20),
       ),
-      child: const Icon(
-        Icons.image,
+      child: Icon(
+        Icons.image_outlined,
         size: 40,
-        color: Colors.grey,
+        color: Colors.grey[400],
       ),
     );
   }
@@ -436,29 +643,69 @@ class CartScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Hapus Semua Item?'),
-        content: const Text('Apakah Anda yakin ingin menghapus semua item dari keranjang?'),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          'Hapus Semua Item?',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: const Text(
+          'Semua produk akan dihapus dari keranjang Anda.',
+          style: TextStyle(height: 1.5),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              cart.clearCart();
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Keranjang berhasil dikosongkan'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
-            child: const Text('Hapus Semua'),
+            child: Text(
+              'Batal',
+              style: TextStyle(color: Colors.grey[600], fontWeight: FontWeight.w600),
+            ),
+          ),
+          Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Colors.red, Colors.redAccent],
+              ),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: ElevatedButton(
+              onPressed: () {
+                cart.clearCart();
+                Navigator.pop(context);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: const Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.white),
+                        SizedBox(width: 12),
+                        Text('Keranjang dikosongkan'),
+                      ],
+                    ),
+                    backgroundColor: Colors.green,
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    margin: const EdgeInsets.all(16),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.transparent,
+                foregroundColor: Colors.white,
+                shadowColor: Colors.transparent,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: const Text(
+                'Hapus Semua',
+                style: TextStyle(fontWeight: FontWeight.bold),
+              ),
+            ),
           ),
         ],
       ),

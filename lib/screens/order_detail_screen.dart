@@ -33,7 +33,7 @@ class _OrderDetailScreenState extends State<OrderDetailScreen> {
     });
 
     try {
-      final order = await _orderService.getOrderDetail(widget.orderId);
+      final order = await _orderService.getOrderById(widget.orderId);
       setState(() {
         _order = order;
         _isLoading = false;

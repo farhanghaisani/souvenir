@@ -1,18 +1,29 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_application_1/screens/admin_products_screen.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:provider/provider.dart';
+
+// Providers
 import 'providers/cart_provider.dart';
+
+// Auth Screens
 import 'screens/auth/login_screen.dart';
 import 'screens/auth/register_screen.dart';
+import 'screens/auth/forgot_password_screen.dart';
+
+// Main Screens
 import 'screens/home_screen.dart';
 import 'screens/cart_screen.dart';
 import 'screens/checkout_screen.dart';
 import 'screens/order_success_screen.dart';
 import 'screens/orders_screen.dart';
 import 'screens/profile_screen.dart';
+
+// Admin Screens
 import 'screens/admin_dashboard_screen.dart';
-import 'screens/auth/forgot_password_screen.dart';
+import 'screens/admin_products_screen.dart';
+
+// Payment
+import 'screens/payment_webview_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,8 +49,9 @@ class MyApp extends StatelessWidget {
         title: 'Souvenir App',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+          colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFFF6B6B)),
           useMaterial3: true,
+          primaryColor: const Color(0xFFFF6B6B),
         ),
         initialRoute: '/login',
         routes: {
@@ -54,6 +66,18 @@ class MyApp extends StatelessWidget {
           '/profile': (context) => const ProfileScreen(),
           '/admin-dashboard': (context) => const AdminDashboardScreen(),
           '/admin/products': (context) => const AdminProductsScreen(),
+        },
+        onGenerateRoute: (settings) {
+          // Handle payment route with arguments
+          if (settings.name == '/payment') {
+            final url = settings.arguments as String?;
+            if (url != null) {
+              return MaterialPageRoute(
+                builder: (context) => PaymentWebViewScreen(paymentUrl: url),
+              );
+            }
+          }
+          return null;
         },
       ),
     );
